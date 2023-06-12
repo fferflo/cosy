@@ -1,0 +1,25 @@
+find_package(Catch2 3 REQUIRED)
+
+macro(cosy_add_test TARGET TEST_NAME)
+  add_executable(${TARGET} EXCLUDE_FROM_ALL ${TEST_NAME})
+  target_link_libraries(${TARGET} cosy Catch2::Catch2WithMain)
+  add_test(NAME ${TARGET} WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/bin/test" COMMAND "${CMAKE_BINARY_DIR}/bin/test/${TARGET}")
+  set_target_properties(${TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/test")
+  add_dependencies(tests ${TARGET})
+endmacro()
+
+cosy_add_test(test_cosy cosy.cpp)
+
+if(TARGET proj)
+  cosy_add_test(test_proj proj.cpp)
+  target_link_libraries(test_proj proj)
+endif()
+
+if(TARGET cereal)
+  cosy_add_test(test_cereal cereal.cpp)
+  target_link_libraries(test_cereal cereal)
+  if(TARGET proj)
+    target_link_libraries(test_cereal proj)
+    target_compile_definitions(test_cereal PUBLIC WITH_PROJ)
+  endif()
+endif()
