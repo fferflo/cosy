@@ -27,12 +27,12 @@ def test_transformer():
     assert np.allclose(bearing_to_vector(math.pi / 2), epsg3857.get_vector("east"))
 
     def vector_to_bearing(vector):
-        return cosy.angle(epsg4326.get_vector("north"), epsg4326_to_epsg3857.transform_inverse(vector))
+        return cosy.angle_between_vectors(epsg4326.get_vector("north"), epsg4326_to_epsg3857.transform_inverse(vector))
     assert np.allclose(vector_to_bearing(epsg3857.get_vector("north")), 0)
     assert np.allclose(vector_to_bearing(epsg3857.get_vector("east")), math.pi / 2)
 
-    assert np.allclose(epsg4326_to_epsg3857.transform_angle(0.0),         cosy.angle(np.asarray([1.0, 0.0]), epsg3857.get_vector("north")))
-    assert np.allclose(epsg4326_to_epsg3857.transform_angle(math.pi / 2), cosy.angle(np.asarray([1.0, 0.0]), epsg3857.get_vector("east")))
+    assert np.allclose(epsg4326_to_epsg3857.transform_angle(0.0),         cosy.angle_between_vectors(np.asarray([1.0, 0.0]), epsg3857.get_vector("north")))
+    assert np.allclose(epsg4326_to_epsg3857.transform_angle(math.pi / 2), cosy.angle_between_vectors(np.asarray([1.0, 0.0]), epsg3857.get_vector("east")))
 
     assert np.allclose(epsg4326_to_epsg3857.transform_angle(epsg4326_to_epsg3857.transform_angle_inverse(0.0)), 0.0)
     assert np.allclose(epsg4326_to_epsg3857.transform_angle(epsg4326_to_epsg3857.transform_angle_inverse(math.pi / 2)), math.pi / 2)

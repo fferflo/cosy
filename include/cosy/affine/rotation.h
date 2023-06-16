@@ -193,7 +193,7 @@ auto normalize_angle(TScalar angle, TScalar lower = -xt::numeric_constants<TScal
 }
 
 template <typename TVec1, typename TVec2>
-auto angle(TVec1&& vec1, TVec2&& vec2, bool clockwise = false)
+auto angle_between_vectors(TVec1&& vec1, TVec2&& vec2, bool clockwise = false)
 {
   auto angle = std::atan2(vec2(1), vec2(0)) - std::atan2(vec1(1), vec1(0));
 
