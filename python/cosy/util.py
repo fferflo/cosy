@@ -1,8 +1,22 @@
 import numpy as np
-import sys, jax.tree_util
+import sys
+
+def tree_flatten(tree):
+    leaves = []
+    def flatten(tree):
+        if isinstance(tree, (list, tuple)):
+            for x in tree:
+                flatten(x)
+        elif isinstance(tree, dict):
+            for x in tree.values():
+                flatten(x)
+        else:
+            leaves.append(tree)
+    flatten(tree)
+    return leaves
 
 def deduce_module(*args, **kwargs):
-    leaves, _ = jax.tree_util.tree_flatten((args, kwargs))
+    leaves = tree_flatten((args, kwargs))
     any_jax = False
     if "jax" in sys.modules:
         import jax.numpy as jnp
