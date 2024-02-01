@@ -230,6 +230,11 @@ public:
     return m_axes.get_vector(direction);
   }
 
+  float get_meridian_convergence(xti::vec2d latlon)
+  {
+    return get_factors(latlon).meridian_convergence; // radians
+  }
+
   friend class Transformer;
 
 #ifdef COSY_CEREAL_INCLUDED
@@ -249,6 +254,15 @@ private:
   std::shared_ptr<PJ> m_handle_cs;
   AreaOfUse m_area_of_use;
   geo::CompassAxes m_axes;
+
+  PJ_FACTORS get_factors(xti::vec2d latlon) const
+  {
+    std::lock_guard<std::mutex> lock(m_context->m_mutex);
+    PJ_COORD input_proj = proj_coord(cosy::radians(latlon(1)), cosy::radians(latlon(0)), 0, 0);
+    PJ_FACTORS factors = proj_factors(m_handle.get(), input_proj);
+
+    return factors;
+  }
 };
 
 #ifdef COSY_CEREAL_INCLUDED

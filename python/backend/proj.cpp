@@ -27,6 +27,9 @@ void register_proj(py::module& proj)
     .def("get_vector", &cosy::proj::CRS::get_vector,
       py::arg("name")
     )
+    .def("get_meridian_convergence", &cosy::proj::CRS::get_meridian_convergence,
+      py::arg("latlon")
+    )
     .def(py::pickle(
       [](const cosy::proj::CRS& x){ // __getstate__
         return py::make_tuple(
