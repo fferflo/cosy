@@ -1,9 +1,10 @@
 import numpy as np
+import numpy
 from cosy.backend.geo import *
 
 EARTH_RADIUS_METERS = 6.378137e6
 
-def distance(latlon1, latlon2):
+def distance(latlon1, latlon2, np=numpy):
     latlon1 = np.radians(np.asarray(latlon1).astype("float64"))
     latlon2 = np.radians(np.asarray(latlon2).astype("float64"))
 
@@ -35,12 +36,12 @@ def move_from_latlon(latlon, bearing, distance):
     angular_distance = distance / EARTH_RADIUS_METERS
 
     target_lat = np.arcsin(
-        np.sin(latlon_rad[0]) * np.cos(angular_distance) +
-        np.cos(latlon_rad[0]) * np.sin(angular_distance) * np.cos(bearing)
+        np.sin(latlon_rad[..., 0]) * np.cos(angular_distance) +
+        np.cos(latlon_rad[..., 0]) * np.sin(angular_distance) * np.cos(bearing)
     )
-    target_lon = latlon_rad[1] + np.arctan2(
-        np.sin(bearing) * np.sin(angular_distance) * np.cos(latlon_rad[0]),
-        np.cos(angular_distance) - np.sin(latlon_rad[0]) * np.sin(target_lat)
+    target_lon = latlon_rad[..., 1] + np.arctan2(
+        np.sin(bearing) * np.sin(angular_distance) * np.cos(latlon_rad[..., 0]),
+        np.cos(angular_distance) - np.sin(latlon_rad[..., 0]) * np.sin(target_lat)
     )
     while target_lon < -np.pi:
         target_lon += 2 * np.pi
