@@ -49,3 +49,9 @@ def move_from_latlon(latlon, bearing, distance):
         target_lon -= 2 * np.pi
 
     return np.array([np.degrees(target_lat), np.degrees(target_lon)])
+
+def meters_per_deg_at_latlon(latlon):
+    distance = 1.0
+    latlon2 = move_from_latlon(move_from_latlon(latlon, 90.0, distance), 0.0, distance)
+    diff_deg = np.absolute(latlon - latlon2)
+    return distance / diff_deg
