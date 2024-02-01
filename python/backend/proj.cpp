@@ -28,12 +28,12 @@ void register_proj(py::module& proj)
       py::arg("name")
     )
     .def(py::pickle(
-      [](const cosy::proj::CRS& x) { // __getstate__
+      [](const cosy::proj::CRS& x){ // __getstate__
         return py::make_tuple(
           x.get_description()
         );
       },
-      [](py::tuple t) { // __setstate__
+      [](py::tuple t){ // __setstate__
         if (t.size() != 1)
         {
           throw std::runtime_error("Invalid state");
@@ -100,13 +100,13 @@ void register_proj(py::module& proj)
     .def_property_readonly("from_crs", &cosy::proj::Transformer::get_from_crs)
     .def_property_readonly("to_crs", &cosy::proj::Transformer::get_to_crs)
     .def(py::pickle(
-      [](const cosy::proj::Transformer& x) { // __getstate__
+      [](const cosy::proj::Transformer& x){ // __getstate__
         return py::make_tuple(
           x.get_from_crs(),
           x.get_to_crs()
         );
       },
-      [](py::tuple t) { // __setstate__
+      [](py::tuple t){ // __setstate__
         if (t.size() != 2)
         {
           throw std::runtime_error("Invalid state");
