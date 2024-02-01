@@ -200,6 +200,32 @@ auto angle_between_vectors(TVec1&& vec1, TVec2&& vec2, bool clockwise = false)
   return clockwise ? -angle : angle;
 }
 
+template <typename TScalar>
+xti::matXT<TScalar, 3> rpy_to_rotation_matrix(TScalar r, TScalar p, TScalar y)
+{
+  // https://en.wikipedia.org/wiki/Rotation_matrix#General_3D_rotations
+  TScalar a = y;
+  TScalar b = p;
+  TScalar c = r;
+  xti::matXT<TScalar, 3> rotation_matrix;
+  rotation_matrix(0, 0) = std::cos(a) * std::cos(b);
+  rotation_matrix(0, 1) = std::cos(a) * std::sin(b) * std::sin(c) - std::sin(a) * std::cos(c);
+  rotation_matrix(0, 2) = std::cos(a) * std::sin(b) * std::cos(c) + std::sin(a) * std::sin(c);
+  rotation_matrix(1, 0) = std::sin(a) * std::cos(b);
+  rotation_matrix(1, 1) = std::sin(a) * std::sin(b) * std::sin(c) + std::cos(a) * std::cos(c);
+  rotation_matrix(1, 2) = std::sin(a) * std::sin(b) * std::cos(c) - std::cos(a) * std::sin(c);
+  rotation_matrix(2, 0) = -std::sin(b);
+  rotation_matrix(2, 1) = std::cos(b) * std::sin(c);
+  rotation_matrix(2, 2) = std::cos(b) * std::cos(c);
+  return rotation_matrix;
+}
+
+template <typename TScalar>
+xti::matXT<TScalar, 3> rpy_to_rotation_matrix(xti::vecXT<TScalar, 3> rpy)
+{
+  return rpy_to_rotation_matrix(rpy(0), rpy(1), rpy(2));
+}
+
 template <typename TScalar, size_t TRank>
 class Rotation
 {
