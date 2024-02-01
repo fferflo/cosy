@@ -211,6 +211,12 @@ class Rigid:
         self.rotation = rotation.astype(dtype)
         self.translation = translation.astype(dtype)
 
+    def __getstate__(self):
+        return self.rotation, self.translation
+
+    def __setstate__(self, t):
+        self.__init__(t[0], t[1])
+
     batchshape = property(lambda self: self.translation.shape[:-1])
     rank = property(lambda self: self.translation.shape[-1])
     dtype = property(lambda self: self.translation.dtype)
@@ -467,6 +473,12 @@ class ScaledRigid: # TODO: implement for nd scale
         self.rotation = rotation.astype(dtype)
         self.translation = translation.astype(dtype)
         self.scale = scale.astype(dtype)
+
+    def __getstate__(self):
+        return self.rotation, self.translation, self.scale
+
+    def __setstate__(self, t):
+        self.__init__(t[0], t[1], t[2])
 
     batchshape = property(lambda self: self.translation.shape[:-1])
     rank = property(lambda self: self.translation.shape[-1])
