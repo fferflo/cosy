@@ -18,18 +18,34 @@
 
 namespace cosy {
 
-template <typename TScalar, size_t TRank>
+
+
+template <typename TScalar, size_t TRank, bool TSingleScale = true>
 class ScaledRigid
 {
 private:
+  using Scale = std::conditional_t<TSingleScale, TScalar, xti::vecXT<TScalar, TRank>>;
+
+  static Scale scale_one()
+  {
+    if constexpr (TSingleScale)
+    {
+      return 1;
+    }
+    else
+    {
+      return xt::ones<TScalar>({TRank});
+    }
+  }
+
   xti::matXT<TScalar, TRank> m_rotation;
   xti::vecXT<TScalar, TRank> m_translation;
-  TScalar m_scale;
+  Scale m_scale;
 
 public:
   ScaledRigid()
     : m_rotation(xt::eye<TScalar>(TRank))
-    , m_scale(1)
+    , m_scale(scale_one())
   {
     m_translation.fill(0);
   }
@@ -38,19 +54,19 @@ public:
   ScaledRigid(const Rigid<TScalar2, TRank>& other)
     : m_rotation(other.get_rotation())
     , m_translation(other.get_translation())
-    , m_scale(1)
+    , m_scale(scale_one())
   {
   }
 
   template <typename TScalar2>
   ScaledRigid(const Rotation<TScalar2, TRank>& other)
     : m_rotation(other.get_rotation())
-    , m_scale(1)
+    , m_scale(scale_one())
   {
     m_translation.fill(0);
   }
 
-  ScaledRigid(xti::matXT<TScalar, TRank> rotation, xti::vecXT<TScalar, TRank> translation, TScalar scale = 1)
+  ScaledRigid(xti::matXT<TScalar, TRank> rotation, xti::vecXT<TScalar, TRank> translation, Scale scale = scale_one())
     : m_rotation(rotation)
     , m_translation(translation)
     , m_scale(scale)
@@ -58,23 +74,23 @@ public:
   }
 
   template <bool TDummy = true, typename = std::enable_if_t<TDummy && TRank == 2, void>>
-  ScaledRigid(TScalar angle, xti::vecXT<TScalar, TRank> translation, TScalar scale)
+  ScaledRigid(TScalar angle, xti::vecXT<TScalar, TRank> translation, Scale scale)
     : m_rotation(angle_to_rotation_matrix(angle))
     , m_translation(translation)
     , m_scale(scale)
   {
   }
 
-  template <typename TScalar2>
-  ScaledRigid(const ScaledRigid<TScalar2, TRank>& other)
+  template <typename TScalar2, bool TSingleScale2>
+  ScaledRigid(const ScaledRigid<TScalar2, TRank, TSingleScale2>& other)
     : m_rotation(other.m_rotation)
     , m_translation(other.m_translation)
     , m_scale(other.m_scale)
   {
   }
 
-  template <typename TScalar2>
-  ScaledRigid<TScalar, TRank>& operator=(const ScaledRigid<TScalar2, TRank>& other)
+  template <typename TScalar2, bool TSingleScale2>
+  ScaledRigid<TScalar, TRank>& operator=(const ScaledRigid<TScalar2, TRank, TSingleScale2>& other)
   {
     this->m_rotation = other.m_rotation;
     this->m_translation = other.m_translation;
@@ -149,12 +165,12 @@ public:
     return m_translation;
   }
 
-  TScalar& get_scale()
+  Scale& get_scale()
   {
     return m_scale;
   }
 
-  const TScalar& get_scale() const
+  const Scale& get_scale() const
   {
     return m_scale;
   }
@@ -166,7 +182,14 @@ public:
     {
       for (int32_t c = 0; c < TRank; c++)
       {
-        result(r, c) = m_rotation(r, c) * m_scale;
+        if constexpr (TSingleScale)
+        {
+          result(r, c) = m_rotation(r, c) * m_scale;
+        }
+        else
+        {
+          result(r, c) = m_rotation(r, c) * m_scale[c];
+        }
       }
       result(r, TRank) = m_translation(r);
       result(TRank, r) = 0;
@@ -175,39 +198,39 @@ public:
     return result;
   }
 
-  template <typename TScalar2, size_t TRank2>
+  template <typename TScalar2, size_t TRank2, bool TSingleScale2>
   friend class ScaledRigid;
 };
 
-template <typename TScalar, size_t TRank>
-ScaledRigid<TScalar, TRank> operator*(const ScaledRigid<TScalar, TRank>& left, const ScaledRigid<TScalar, TRank>& right)
+template <typename TScalar, size_t TRank, bool TSingleScale>
+ScaledRigid<TScalar, TRank, TSingleScale> operator*(const ScaledRigid<TScalar, TRank, TSingleScale>& left, const ScaledRigid<TScalar, TRank, TSingleScale>& right)
 {
-  return ScaledRigid<TScalar, TRank>(xt::linalg::dot(left.get_rotation(), right.get_rotation()), left.transform(right.get_translation()), left.get_scale() * right.get_scale());
+  return ScaledRigid<TScalar, TRank, TSingleScale>(xt::linalg::dot(left.get_rotation(), right.get_rotation()), left.transform(right.get_translation()), left.get_scale() * right.get_scale());
 }
 
-template <typename TScalar, size_t TRank>
-ScaledRigid<TScalar, TRank> operator/(const ScaledRigid<TScalar, TRank>& left, const ScaledRigid<TScalar, TRank>& right)
+template <typename TScalar, size_t TRank, bool TSingleScale>
+ScaledRigid<TScalar, TRank, TSingleScale> operator/(const ScaledRigid<TScalar, TRank, TSingleScale>& left, const ScaledRigid<TScalar, TRank, TSingleScale>& right)
 {
   return left * right.inverse();
 }
 
-template <typename TScalar, size_t TRank>
-std::ostream& operator<<(std::ostream& stream, const ScaledRigid<TScalar, TRank>& transform)
+template <typename TScalar, size_t TRank, bool TSingleScale>
+std::ostream& operator<<(std::ostream& stream, const ScaledRigid<TScalar, TRank, TSingleScale>& transform)
 {
   return stream << "ScaledRigid(t=" << transform.get_translation() << " R=" << transform.get_rotation() << " s=" << transform.get_scale() << ")";
 }
 
 #ifdef COSY_CEREAL_INCLUDED
-template <typename TArchive, typename TScalar, size_t TRank>
-void save(TArchive& archive, const cosy::ScaledRigid<TScalar, TRank>& transform)
+template <typename TArchive, typename TScalar, size_t TRank, bool TSingleScale>
+void save(TArchive& archive, const cosy::ScaledRigid<TScalar, TRank, TSingleScale>& transform)
 {
   archive(transform.get_rotation());
   archive(transform.get_translation());
   archive(transform.get_scale());
 }
 
-template <typename TArchive, typename TScalar, size_t TRank>
-void load(TArchive& archive, cosy::ScaledRigid<TScalar, TRank>& transform)
+template <typename TArchive, typename TScalar, size_t TRank, bool TSingleScale>
+void load(TArchive& archive, cosy::ScaledRigid<TScalar, TRank, TSingleScale>& transform)
 {
   archive(transform.get_rotation());
   archive(transform.get_translation());
