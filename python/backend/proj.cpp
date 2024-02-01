@@ -30,6 +30,11 @@ void register_proj(py::module& proj)
     .def("get_meridian_convergence", &cosy::proj::CRS::get_meridian_convergence,
       py::arg("latlon")
     )
+    .def_property_readonly("area_of_use", [](const cosy::proj::CRS& crs){
+        auto area_of_use = crs.get_area_of_use();
+        return std::make_pair(area_of_use.lower_latlon, area_of_use.upper_latlon);
+      }
+    )
     .def(py::pickle(
       [](const cosy::proj::CRS& x){ // __getstate__
         return py::make_tuple(
