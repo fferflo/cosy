@@ -26,7 +26,6 @@ find_package(xtensor-blas REQUIRED)
 find_package(xtensor-interfaces REQUIRED)
 target_link_libraries(cosy INTERFACE
   xtensor
-  xtensor::use_xsimd
   xtensor-blas
   xtensor-interfaces::base
 )
